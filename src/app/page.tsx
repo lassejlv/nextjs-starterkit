@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 export default function Page() {
   const response = useQuery({
     queryKey: ["users"],
+
     queryFn: async () => {
       return getUsersCount();
     },
@@ -22,7 +23,7 @@ export default function Page() {
         Typescript, Tailwind CSS & Drizzle ORM.
       </p>
 
-      <span className="mt-4 text-center text-lg text-zinc-500">
+      <span className="mt-4 text-center text-2xl text-zinc-500">
         There are a total of {response.isLoading ? "0" : response.data?.data}{" "}
         users in the database. <br />
         <span className="text-sm italic">
