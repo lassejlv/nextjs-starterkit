@@ -1,45 +1,39 @@
-FROM node:21-bookworm AS base
-ARG DEBIAN_FRONTEND=noninteractive
+FROM node:latest-alpine AS base
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-# ENV NEXT_TELEMETRY_DISABLED 1
-
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  libc6-dev \
-  libvips-dev \
-  build-essential \
-  && rm -rf /var/lib/apt/lists/*
+FROM base AS builder
 
 WORKDIR /app
-RUN chown node:node /app
 
+COPY package.json ./
+RUN npm ci
+COPY . .
 
-## Install dependencies based on the preferred package manager, and build the app
-FROM base AS builder
-USER root
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
-# COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-COPY --chown=node:node . .
-USER node
-RUN \
-  if [ -f yarn.lock ]; then yarn config set global-folder /app/.yarn && yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+RUN npm run build
 
-RUN yarn build
-
-## Copy the built app to a new image
 FROM base AS runner
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
-COPY --from=builder --chown=node:node /app/node_modules/ ./node_modules/
+WORKDIR /app
 
-USER node
-ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/node_modules/.bin
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
-CMD ["node", "server.js"]
+
+ENV PORT=3000
+
+CMD node server.js
