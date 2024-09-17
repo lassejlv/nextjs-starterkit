@@ -1,0 +1,89 @@
+"use server";
+
+import { db } from "@/db";
+import { userTable } from "@/db/schemas/user";
+import { Action } from "@/types/Action";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
+import { RegisterUserSchema } from "@/lib/zod";
+import crypto from "crypto";
+import { redis } from "@/lib/redis";
+import { cookies } from "next/headers";
+
+type Data = z.infer<typeof RegisterUserSchema>;
+
+export const RegisterUser = async (data: Data): Promise<Action<null>> => {
+  try {
+    const { email, password } = RegisterUserSchema.parse(data);
+
+    const user = await db.query.userTable.findFirst({
+      where: eq(userTable.email, email),
+    });
+
+    if (user) throw new Error("User already exists");
+
+    // create new user and hash password
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await db
+      .insert(userTable)
+      .values({
+        email,
+        password: hashedPassword,
+      })
+      .returning();
+
+    console.log("New user", newUser);
+
+    return { success: true, message: "User created" };
+  } catch (error: any) {
+    const isZodError = error.errors !== undefined;
+
+    return {
+      isZodError,
+      success: false,
+      message: isZodError ? "Invalid data" : error.message,
+    };
+  }
+};
+
+export const LoginUser = async (data: Data): Promise<Action<null>> => {
+  try {
+    const { email, password } = RegisterUserSchema.parse(data);
+
+    const user = await db.query.userTable.findFirst({
+      where: eq(userTable.email, email),
+    });
+
+    if (!user) throw new Error("User not found");
+
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password as string,
+    );
+    if (!passwordMatch) throw new Error("Invalid password");
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = 1000 * 60 * 60 * 24 * 7;
+    await redis.set(token, user.id, "EX", expires);
+
+    cookies().set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: expires,
+    });
+
+    return { success: true, message: "User logged in" };
+  } catch (error: any) {
+    const isZodError = error.errors !== undefined;
+
+    return {
+      isZodError,
+      success: false,
+      message: isZodError ? "Invalid data" : error.message,
+    };
+  }
+};

@@ -1,28 +1,28 @@
 "use client";
-import { RegisterUser } from "@/actions/user";
+import { LoginUser } from "@/actions/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegisterUserSchema } from "@/lib/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { type FormEvent } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 export default function Page() {
+  const pathname = useSearchParams().get("next") || "/app";
   const router = useRouter();
 
-  const registerMutation = useMutation({
-    mutationKey: ["register"],
+  const loginMutation = useMutation({
+    mutationKey: ["login"],
     mutationFn: async (data: z.infer<typeof RegisterUserSchema>) => {
-      return await RegisterUser(data);
+      return await LoginUser(data);
     },
 
     onSuccess: async (data) => {
       if (data.success) {
-        toast.success("Account created!");
-        return router.push("/login");
+        return router.push(pathname);
       } else {
         return toast.error(data.message);
       }
@@ -36,7 +36,7 @@ export default function Page() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    await registerMutation.mutateAsync({ email, password });
+    await loginMutation.mutateAsync({ email, password });
   };
 
   return (
@@ -54,9 +54,9 @@ export default function Page() {
       <Button
         variant="secondary"
         type="submit"
-        disabled={registerMutation.isPending}
+        disabled={loginMutation.isPending}
       >
-        {registerMutation.isPending ? "Registering..." : "Register"}
+        {loginMutation.isPending ? "Loading..." : "Login"}
       </Button>
     </form>
   );

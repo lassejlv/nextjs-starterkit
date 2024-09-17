@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { ReactQueryProvider } from "./provider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const fonts = Poppins({ weight: "400", subsets: ["latin"] });
@@ -17,7 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${fonts.className} container mx-auto py-12`}>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <Toaster />
+          {children}
+        </ReactQueryProvider>
       </body>
     </html>
   );
