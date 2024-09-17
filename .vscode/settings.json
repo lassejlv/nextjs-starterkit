@@ -1,0 +1,9 @@
+{
+  "files.exclude": {
+    ".env.example": true,
+    "next-env.d.ts": true,
+    "bun.lockb": true,
+    ".prettierrc": true,
+    ".vscode": true
+  }
+}
