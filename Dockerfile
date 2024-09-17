@@ -5,7 +5,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY package.json ./
-RUN npm ci
+RUN npm install --force
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
