@@ -23,7 +23,7 @@ export default async function Page() {
     };
 
     try {
-      const { email, password } = schema.parse(data);
+      const { email } = schema.parse(data);
 
       const user = await db.query.userTable.findFirst({
         where: eq(userTable.email, email),
