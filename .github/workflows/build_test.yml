@@ -1,5 +1,10 @@
 name: Build and Test
-
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  REDIS_URL: ${{ secrets.REDIS_URL }}
+  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+  RESEND_FROM: ${{ secrets.RESEND_FROM }}
+  HOST: ${{ secrets.HOST }}
 on:
   push:
     branches:
