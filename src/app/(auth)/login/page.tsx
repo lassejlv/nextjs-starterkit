@@ -1,4 +1,5 @@
 "use client";
+
 import { LoginUser } from "@/actions/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +7,11 @@ import { Label } from "@/components/ui/label";
 import { RegisterUserSchema } from "@/lib/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { type FormEvent } from "react";
+import React, { Suspense, type FormEvent } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export default function Page() {
+function LoginForm() {
   const pathname = useSearchParams().get("next") || "/app";
   const router = useRouter();
 
@@ -19,7 +20,6 @@ export default function Page() {
     mutationFn: async (data: z.infer<typeof RegisterUserSchema>) => {
       return await LoginUser(data);
     },
-
     onSuccess: async (data) => {
       if (data.success) {
         return router.push(pathname);
@@ -59,5 +59,13 @@ export default function Page() {
         {loginMutation.isPending ? "Loading..." : "Login"}
       </Button>
     </form>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

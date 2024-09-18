@@ -70,6 +70,7 @@ export const LoginUser = async (data: Data): Promise<Action<null>> => {
     await redis.set(token, user.id, "EX", expires);
 
     cookies().set("session", token, {
+      path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
