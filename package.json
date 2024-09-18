@@ -10,11 +10,14 @@
     "push": "bun drizzle-kit generate && bun drizzle-kit push"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.1",
+    "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@t3-oss/env-core": "^0.11.1",
     "@tanstack/react-query": "^5.56.2",
+    "@uploadthing/react": "^7.0.2",
     "babel-plugin-react-compiler": "^0.0.0-experimental-23b8160-20240916",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
@@ -32,6 +35,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "uploadthing": "^7.0.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {

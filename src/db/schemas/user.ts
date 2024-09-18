@@ -6,6 +6,7 @@ export const userTable = pgTable("users", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).unique(),
+  avatar: varchar("avatar", { length: 255 }),
   password: varchar("password", { length: 255 }),
   emailVerified: boolean("email_verified").default(false),
   createdAt: date("created_at").defaultNow(),

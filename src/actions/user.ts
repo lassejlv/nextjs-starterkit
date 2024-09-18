@@ -10,6 +10,7 @@ import { RegisterUserSchema } from "@/lib/zod";
 import crypto from "crypto";
 import { redis } from "@/lib/redis";
 import { cookies } from "next/headers";
+import { auth } from "./auth";
 
 type Data = z.infer<typeof RegisterUserSchema>;
 
@@ -88,3 +89,27 @@ export const LoginUser = async (data: Data): Promise<Action<null>> => {
     };
   }
 };
+
+
+export const Updateuser = async (data: any): Promise<Action<null>> => {
+  try {
+  
+    const parsedData = z.object({ name: z.string().min(1).max(255) }).parse(data);
+    
+    const session = await auth();
+    if (!session.success || !session.data) throw new Error("Not authenticated");
+
+    await db.update(userTable).set(parsedData).where(eq(userTable.id, session.data.id))
+
+
+    return { success: true, message: "User updated" };
+  } catch (error: any) {
+    const isZodError = error.errors !== undefined;
+
+    return {
+      isZodError,
+      success: false,
+      message: isZodError ? "Invalid data" : error.message,
+    };
+  }
+}
